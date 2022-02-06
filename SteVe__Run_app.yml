@@ -1,0 +1,55 @@
+version: "3"
+
+networks:
+
+    khyber:
+
+        external: false
+
+        driver: bridge
+
+volumes:
+
+    mariadb:
+
+        external: false
+
+services:
+
+    mariadb:
+
+        restart: unless-stopped
+
+        networks:
+            - khyber
+
+        # ports:
+            # - "3306:3306"
+
+        container_name: mariadb
+
+        volumes:
+            - "mariadb:/var/lib/mysql"
+
+        image: mariadb:10.4
+
+        env_file:
+            - mariadb.env
+
+    steve:
+
+        restart: unless-stopped
+
+        networks:
+            - khyber
+
+        container_name: steve
+
+        ports:
+            - "8180:8180"
+            - "8443:8443"
+
+        image: irasus/steve:latest
+
+        depends_on:
+            - mariadb

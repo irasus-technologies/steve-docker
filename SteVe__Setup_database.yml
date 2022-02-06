@@ -1,0 +1,57 @@
+version: "3"
+
+networks:
+
+    khyber:
+
+        external: false
+
+        driver: bridge
+
+volumes:
+
+    mariadb:
+
+        external: false
+
+services:
+
+    mariadb:
+
+        restart: unless-stopped
+
+        networks:
+            - khyber
+
+        # ports:
+            # - "3306:3306"
+
+        container_name: mariadb
+
+        volumes:
+            - "mariadb:/var/lib/mysql"
+
+        image: mariadb:10.4
+
+        env_file:
+            - mariadb.env
+
+    flyway:
+
+        restart: on-failure
+
+        networks:
+            - khyber
+
+        container_name: flyway
+
+        command: migrate
+
+        volumes:
+            - "./flyway/sql:/flyway/sql"
+            - "./flyway/conf:/flyway/conf"
+
+        image: flyway/flyway:8.4.4-alpine
+
+        depends_on:
+            - mariadb
