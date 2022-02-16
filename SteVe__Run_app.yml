@@ -45,9 +45,9 @@ services:
 
         container_name: steve
 
-        ports:
-            - "8180:8180"
-            - "8443:8443"
+        # ports:
+            # - "80:80"
+            # - "443:443"
 
         image: irasus/steve:latest
 
