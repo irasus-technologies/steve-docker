@@ -35,6 +35,9 @@ services:
 
         image: nginx:1.22.0-alpine
 
+        depends_on:
+            - steve
+
     simulator:
 
         restart: unless-stopped
