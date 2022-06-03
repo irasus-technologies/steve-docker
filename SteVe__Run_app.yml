@@ -32,7 +32,7 @@ services:
             - "./nginx.conf:/etc/nginx/nginx.conf"
             - "./steve.conf:/etc/nginx/conf.d/steve.conf"
 
-        image: nginx:1.21.6
+        image: nginx:1.22.0-alpine
 
     mariadb:
 
