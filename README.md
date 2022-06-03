@@ -42,7 +42,7 @@ The following ports are being used by the respective containers:
 	docker-compose up
 	```
 
-* Login to SteVe via [http://steve.localhost/](http://steve.localhost/) using the credentials ```admin```, ```1234``` and create a charger "CHARGER" and a tag "TAG"
+* Login to SteVe via [http://steve.localhost/](http://steve.localhost/) using the credentials ```admin```, ```1234```. Create a charger "CHARGER" and a tag "TAG". Enable webhook notifications in "SETTINGS" for all events, and specify the webhook target ```http://node-red:1880/```.
 
 * Open the simulator via [http://simulator.localhost/](http://simulator.localhost/) and validate the Central Station URL ```ws://steve.localhost/charger/CHARGER```. Click on "Connect to the EVCMS".
 
