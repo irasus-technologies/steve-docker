@@ -29,9 +29,9 @@ services:
         container_name: nginx
 
         volumes:
-            - "./nginx.conf:/etc/nginx/nginx.conf"
-            - "./steve.conf:/etc/nginx/conf.d/steve.conf"
-            - "./simulator.conf:/etc/nginx/conf.d/simulator.conf"
+            - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+            - "./nginx/steve.conf:/etc/nginx/conf.d/steve.conf"
+            - "./nginx/simulator.conf:/etc/nginx/conf.d/simulator.conf"
 
         image: nginx:1.22.0-alpine
 
@@ -53,7 +53,7 @@ services:
         image: nginx:1.22.0-alpine
 
         volumes:
-            - "./index.html:/usr/share/nginx/html/index.html"
+            - "./simulator/index.html:/usr/share/nginx/html/index.html"
 
     mariadb:
 
@@ -137,8 +137,7 @@ services:
             # - "443:443"
 
         build:
-            context: .
-            dockerfile: Dockerfile.copy
+            context: ./steve
 
         image: irasus/steve:latest
 
