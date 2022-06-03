@@ -1,0 +1,5 @@
+.docker-compose.yml.swp
+node-red/node_modules
+node-red/*.backup
+node-red/.config.*.json
+node-red/package.json
