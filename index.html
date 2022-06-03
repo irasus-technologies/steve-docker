@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Irasus OCPP 1.6 JSON Client Simulator v3.1.0</title>
+    <style>
+        body {
+            background: #000;
+            color: white;
+            font-family: Arial;
+        }
+
+        button, input, select {
+            display: block;
+            width: 100%;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        button {
+            background: #369;
+            color: #fff;
+            padding: 5px 0;
+            border: none;
+        }
+
+        ul {
+            background: #000;
+            color: #eee;
+        }
+
+        #red, #green, #blue {
+            min-width: 10px;
+        }
+
+        #red {
+            background-color: red;
+        }
+
+        #green {
+            background-color: green;
+        }
+
+        #blue {
+            background-color: blue;
+        }
+
+        #yellow {
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Irasus OCPP 1.6 JSON Client Simulator v3.1.0</h1>
+<select style="display:none;"><option value="">OCPP-J1.6</option></select>
+<label>Central Station</label><input id="CP" type="text" placeholder="Id Station" value="ws://steve.localhost/charger/CHARGER"/>
+<label>Tag</label><input id="TAG" type="text" placeholder="Tag" value="TAG"/>
+
+<h2>Actions</h2>
+<button id="connect">Connect to the EVCMS</button>
+<button id="authorize">Authorize</button>
+<button id="start">Start Charging Transaction</button>
+<button id="stop">Stop Charging Transaction</button>
+<button id="heartbeat">Send Heartbeat Packet to the EVCMS</button>
+<label>Voltage (V)</label><input id="voltagevalue" type="text" placeholder="Voltage value" value="230.00"/>
+<label>Current (A)</label><input id="currentvalue" type="text" placeholder="Current value" value="100.00"/>
+<label>Power (kW)</label><input id="powervalue" type="text" placeholder="Power value" value="22.7"/>
+<label>Energy (kWh)</label><input id="energyvalue" type="text" placeholder="Energy value" value="18650"/>
+<button id="mv">Send Meter Values to the EVCMS</button>
+<button id="status">Notify EVCMS of the Charger Status</button>
+<button id="data_transfer">Transfer Charger Data to the EVCMS</button>
+
+<div>
+    <span class="indicator" id="red">____</span>
+    <span class="indicator" id="green">____</span>
+    <span class="indicator" id="blue">____</span>
+    <span class="indicator" id="yellow">____</span>
+</div>
+
+<ul id="console"></ul>
+
+<script
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+
+<script>
+    var c = 0;
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var id = randomId();
+    var _websocket = null;
+    var connector_locked = false;
+
+    function formatDate(date) {
+        var day = String(date.getDate());
+        if (day.length < 2) {
+            day = ('0' + day.slice(-2));
+        }
+
+        var monthIndex = String(date.getMonth() + 1);
+        if (monthIndex.length < 2) {
+            monthIndex = ('0' + monthIndex.slice(-2));
+        }
+        var year = date.getFullYear();
+        var h = date.getHours();
+        var m = String(date.getMinutes());
+        var s = String(date.getSeconds());
+        if (h.length <2) {
+            h = ('0' + h.slice(-2));
+        }
+        if (m.length <2) {
+            m = ('0' + m.slice(-2));
+        }
+        if (s.length <2) {
+            s = ('0' + s.slice(-2));
+        }
+        return year + '-' + monthIndex + '-' + day + "T" + h + ":" + m + ":" + s;
+    }
+
+    function randomId() {
+        id = "";
+        for (var i = 0; i < 36; ++i) {
+            id += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return id;
+    }
+
+    function wsConnect() {
+        var wsurl = $('select').val();
+        var CP = $('#CP').val();
+
+        if (_websocket) {
+            $('#red').show();
+            _websocket.close(3001);
+        } else {
+            _websocket = new WebSocket(wsurl + "" + CP, ["ocpp1.6", "ocpp1.5"]);
+            _websocket.onopen = function (authorizationData) {
+
+                sessionStorage.setItem('LastAction', "BootNotification");
+                $('#yellow').show();
+                BootNotification();
+                $('#connect').text('Disconnect from the EVCMS').css('background', 'green');
+
+            };
+
+            _websocket.onmessage = function (msg) {
+                c++;
+                var ddata = (JSON.parse(msg.data));
+
+                if (c == 1) {
+                    var hb_interval = handleData(ddata);
+                    sessionStorage.setItem("Configuration", hb_interval);
+                    //start_heartbeat(hb_interval * 1000);
+                }
+
+                if (ddata[0] === 3) {
+                    la = getLastAction();
+
+                    if (la == "startTransaction") {
+                        ddata = ddata[2];
+                        logMsg("Data exchange successful!");
+                        var array = $.map(ddata, function (value, index) {
+                            return [value];
+                        });
+                        var TransactionId = (array[0]);
+                        sessionStorage.setItem('TransactionId', TransactionId);
+                    }
+                    logMsg("Response: " + JSON.stringify(ddata[2]));
+                } else if ((JSON.parse(msg.data))[0] === 4) {
+                    logMsg("Data exchange failed - JSON is not accepted!");
+                } else if ((JSON.parse(msg.data))[0] === 2) {
+                    logMsg((JSON.parse(msg.data))[2]);
+                    id = (JSON.parse(msg.data))[1];
+                    switch (ddata[2]) {
+                        case "Reset":
+                            //Reset type SOFT, HARD
+                            var ResetS = JSON.stringify([3, id, {"status": "Accepted"}]);
+                            _websocket.send(ResetS);
+                            location.reload();
+                            break;
+                        case "RemoteStopTransaction":
+                            var remStp = JSON.stringify([3, id, {"status": "Accepted"}]);
+                            _websocket.send(remStp);
+                            var stop_id = (JSON.parse(msg.data)[3].transactionId);
+                            stopTransaction(stop_id);
+                            $('.indicator').hide();
+                            $('#yellow').show();
+                            break;
+                        case "RemoteStartTransaction":
+                            var remStrt = JSON.stringify([3, id, {"status": "Accepted"}]);
+                            _websocket.send(remStrt);
+                            startTransaction();
+                            break;
+                        case "UnlockConnector":
+                            var UC = JSON.stringify([3, id, {"status": "Accepted"}]);
+                            _websocket.send(UC);
+                            // connector_locked = false;
+                            // $('.indicator').hide();
+                            // $('#yellow').show();
+                            // logMsg("Connector status changed to: "+connector_locked);
+                            break;
+                        default:
+                            var error = JSON.stringify([4, id]);
+                            _websocket.send(error);
+                            break;
+                    }
+                }
+            };
+
+            _websocket.onclose = function (evt) {
+                $('#connect').text('Connect to the EVCMS').css('background', '#369');
+                if (evt.code == 3001) {
+                    logMsg('WebSocket closed');
+                    _websocket = null;
+                } else {
+                    logMsg('WebSocket connection error: ' + evt.code);
+                    $('#console').html("");
+                    _websocket = null;
+                    wsConnect();
+                }
+            };
+
+            _websocket.onerror = function (evt) {
+                if (_websocket.readyState == 1) {
+                    $('#red').show();
+                    logMsg('WebSocket normal error: ' + evt.type);
+                }
+            };
+        }
+    }
+
+    function logMsg(err) {
+        console.log(err);
+        $('#console').append('<li>' + err + '</li>');
+    }
+
+    function Authorize() {
+        sessionStorage.setItem('LastAction', "Authorize");
+        var Auth = JSON.stringify([2, id, "Authorize", {"idTag": $("#TAG").val()}]);
+        _websocket.send(Auth);
+    }
+
+    function startTransaction() {
+        sessionStorage.setItem('LastAction', "startTransaction");
+        $('.indicator').hide();
+        $('#green').show();
+        connector_locked = true;
+        logMsg("Connector status changed to: " + connector_locked);
+        var strtT = JSON.stringify([2, id, "StartTransaction", {
+            "connectorId": 1,
+            "idTag": $("#TAG").val(),
+            "timestamp": formatDate(new Date()),
+            "meterStart": 0,
+            "reservationId": 0
+        }]);
+        _websocket.send(strtT);
+    }
+
+    function stopTransaction(transaction_id = false) {
+        sessionStorage.setItem('LastAction', "stopTransaction");
+        transaction_id == false ? ssid = sessionStorage.getItem('TransactionId') : ssid = transaction_id;
+        var value0 = $('#energyvalue').val();
+        $('.indicator').hide();
+        connector_locked = false;
+        logMsg("Connector status changed to: " + connector_locked);
+        $('#yellow').show();
+        var stpT = JSON.stringify([2, id, "StopTransaction",{
+            "transactionId": ssid,
+            "idTag": $("#TAG").val(),
+            "timestamp": formatDate(new Date()),
+            "meterStop": value0
+        }]);
+        _websocket.send(stpT);
+    }
+
+    function sendMeterValue() {
+        sessionStorage.setItem('LastAction', "MeterValues");
+        // var volt = $('#metervalue').val();
+        // Math.floor(Math.random() * 100)
+        var value1 = $('#voltagevalue').val();
+        var value2 = $('#currentvalue').val();
+        var value3 = $('#powervalue').val();
+        var value4 = $('#energyvalue').val();
+        var MV = JSON.stringify([2, id, "MeterValues", {
+            "connectorId": 1,
+            //"transactionId": ssid,
+            "meterValue": [{
+                "timestamp": formatDate(new Date()),
+                "sampledValue": [{
+                    "value": value1,
+                    "context": "Sample.Periodic",
+                    "format": "Raw",
+                    "measurand": "Voltage",
+                    "phase": "L1-N",
+                    "location": "Body",
+                    "unit": "V"
+                },
+                {
+                    "value": value2,
+                    "context": "Sample.Periodic",
+                    "format": "Raw",
+                    "measurand": "Current.Import",
+                    "phase": "L1-N",
+                    "location": "Body",
+                    "unit": "A"
+                },
+                {
+                    "value": value3,
+                    "context": "Sample.Periodic",
+                    "format": "Raw",
+                    "measurand": "Power.Active.Import",
+                    "phase": "L1-N",
+                    "location": "Body",
+                    "unit": "kW"
+                },
+                {
+                    "value": value4,
+                    "context": "Sample.Periodic",
+                    "format": "Raw",
+                    "measurand": "Energy.Active.Import.Register",
+                    "phase": "L1-N",
+                    "location": "Body",
+                    "unit": "kWh"
+                }]
+            }]
+        }]);
+        _websocket.send(MV);
+        logMsg("Meter value sent");
+    }
+
+    function handleData(data, request = false) {
+        var lastAction = getLastAction();
+        if (lastAction = "BootNotification") {
+            data = data[2];
+            heartbeat_interval = data.interval;
+            return heartbeat_interval;
+        } else if (lastAction = "StartTransaction") {
+            return "StartTransaction";
+        } else if (1 == 2) {
+            alert("else");
+        }
+    }
+
+    function getLastAction() {
+        var LastAction = sessionStorage.getItem("LastAction");
+        return LastAction;
+    }
+
+    function BootNotification() {
+        var BN = JSON.stringify([2, id, "BootNotification", {
+            "chargePointVendor": "Irasus",
+            "chargePointModel": "Irasus 1.6J",
+            "chargePointSerialNumber": "2019.01.01",
+            "chargeBoxSerialNumber": "2019.01.01",
+            "firmwareVersion": "0.0.0",
+            "iccid": "ICCID",
+            "imsi": "IMSI",
+            "meterType": "2019.01.01",
+            "meterSerialNumber": "2019.01.01"
+        }]);
+        logMsg('WebSocket connected');
+        _websocket.send(BN);
+    }
+
+    // function start_heartbeat(interval) {
+    function start_heartbeat() {
+        // logMsg("Setting heartbeat interval to " + interval);
+        setInterval(send_heartbeat, interval);
+    }
+
+    function send_heartbeat() {
+        sessionStorage.setItem('LastAction', "Heartbeat");
+        var HB = JSON.stringify([2, id, "Heartbeat", {}]);
+        _websocket.send(HB);
+    }
+
+    $(document).ready(function() {
+        $('.indicator').hide();
+        $('#red').show();
+        $('#connect').click(function () {
+            $('.indicator').hide();
+            $('#console').html("");
+            wsConnect();
+        });
+        $('#authorize').click(function () {
+            Authorize();
+        });
+        $('#start').click(function () {
+            startTransaction();
+            // start_heartbeat();
+        });
+        $('#stop').click(function () {
+            stopTransaction();
+        });
+        $('#mv').click(function () {
+            // sessionStorage.setItem('LastAction', "MeterValues");
+            // var val = $("#metervalue").val();
+            // var MV = JSON.stringify([2, id, "MeterValues", {"connectorId": 1, "transactionId": ssid, "meterValue": [{"timestamp": formatDate(new Date()), "sampledValue": [{"value": val}]}]}]);
+            //_websocket.send(MV);
+            sendMeterValue();
+
+        });
+        $('#heartbeat').click(function () {
+            send_heartbeat();
+        });
+        $('#status').click(function () {
+            sessionStorage.setItem('LastAction', "StatusNotification");
+            var SN = JSON.stringify([2, id, "StatusNotification", {
+                "connectorId": 1,
+                "status": "Available",
+                "errorCode": "NoError",
+                "info": "",
+                "timestamp": formatDate(new Date()),
+                "vendorId": "",
+                "vendorErrorCode": ""
+            }]);
+            _websocket.send(SN);
+        });
+        $('#data_transfer').click(function () {
+            sessionStorage.setItem('LastAction', "DataTransfer");
+            var DT = JSON.stringify([2, id, "DataTransfer", {
+                "vendorId": "Irasus",
+                "messageId": "GetChargeInstruction",
+                "data": ""
+            }]);
+            _websocket.send(DT);
+        });
+        $('#connect').on('change', function () {
+            if (_websocket) {
+                _websocket.close(3001);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -31,8 +31,26 @@ services:
         volumes:
             - "./nginx.conf:/etc/nginx/nginx.conf"
             - "./steve.conf:/etc/nginx/conf.d/steve.conf"
+            - "./simulator.conf:/etc/nginx/conf.d/simulator.conf"
 
         image: nginx:1.22.0-alpine
+
+    simulator:
+
+        restart: unless-stopped
+
+        networks:
+            - khyber
+
+        # ports:
+            # - "80:80"
+
+        container_name: simulator
+
+        image: nginx:1.22.0-alpine
+
+        volumes:
+            - "./index.html:/usr/share/nginx/html/index.html"
 
     mariadb:
 
