@@ -1,0 +1,73 @@
+[
+    {
+        "id": "2b4a876790c8a9a3",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "072ab022f5100407",
+        "type": "http in",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "url": "/charger",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 40,
+        "wires": [
+            [
+                "4a37808bb33bfb58",
+                "c70d15aa49d09ebf"
+            ]
+        ]
+    },
+    {
+        "id": "4a37808bb33bfb58",
+        "type": "http response",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 300,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "c70d15aa49d09ebf",
+        "type": "debug",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 310,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "6e73ce04a3f868d5",
+        "type": "http in",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "url": "/transaction",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 80,
+        "wires": [
+            [
+                "4a37808bb33bfb58",
+                "c70d15aa49d09ebf"
+            ]
+        ]
+    }
+]

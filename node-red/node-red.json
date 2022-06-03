@@ -1,0 +1,21 @@
+{
+    "name": "node-red-irasus-goodenough",
+    "description": "Irasus Goodenough",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "node-red": "2.2.0",
+        "checkdigit": "^1.1.1",
+        "math": "0.0.3",
+        "node-red-contrib-buffer-parser": "~3.2.2",
+        "node-red-contrib-loop": "~1.0.1",
+        "node-red-contrib-re-postgres": "~0.3.3",
+        "node-red-contrib-postgresql": "~0.8.0",
+        "node-red-dashboard": "~3.1.2",
+        "node-red-node-email": "~1.15.0",
+        "querystring": "^0.2.1"
+    },
+    "scripts": {
+        "start": "node $NODE_OPTIONS node_modules/node-red/red.js $FLOWS"
+    }
+}
