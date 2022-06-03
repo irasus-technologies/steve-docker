@@ -51,7 +51,7 @@ services:
             - "./flyway/sql:/flyway/sql"
             - "./flyway/conf:/flyway/conf"
 
-        image: flyway/flyway:8.4.4-alpine
+        image: flyway/flyway:8.5.11-alpine
 
         depends_on:
             - mariadb
