@@ -50,3 +50,5 @@ The following ports are being used by the respective containers:
 * Login to SteVe via [http://steve.localhost/](http://steve.localhost/) using the credentials ```admin```, ```1234``` and create a charger "CHARGER" and a tag "TAG"
 
 * Open the simulator via [http://simulator.localhost/](http://simulator.localhost/) and validate the Central Station URL ```ws://steve.localhost/charger/CHARGER```. Click on "Connect to the EVCMS".
+
+* Access SteVe's REST API via SteVe's Swagger webpage at [http://steve.localhost/swagger-ui.html](http://steve.localhost/swagger-ui.html)
