@@ -8,36 +8,381 @@
         "env": []
     },
     {
-        "id": "072ab022f5100407",
+        "id": "f246722e.5e8558",
+        "type": "subflow",
+        "name": "OCPP CMS Webhook",
+        "info": "",
+        "category": "",
+        "in": [],
+        "out": [
+            {
+                "x": 260,
+                "y": 40,
+                "wires": [
+                    {
+                        "id": "f4d49c9b.b4c52",
+                        "port": 0
+                    }
+                ]
+            },
+            {
+                "x": 260,
+                "y": 100,
+                "wires": [
+                    {
+                        "id": "d6108904.e84f78",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {},
+        "color": "#DDAA99"
+    },
+    {
+        "id": "daa14bb1.34271",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": false
+    },
+    {
+        "id": "f4d49c9b.b4c52",
         "type": "http in",
-        "z": "2b4a876790c8a9a3",
+        "z": "f246722e.5e8558",
+        "d": true,
         "name": "",
         "url": "/charger",
         "method": "post",
         "upload": false,
         "swaggerDoc": "",
-        "x": 110,
+        "x": 90,
+        "y": 40,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d6108904.e84f78",
+        "type": "http in",
+        "z": "f246722e.5e8558",
+        "name": "",
+        "url": "/transaction",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "24db202d.bce3",
+        "type": "debug",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "All",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 350,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "29d4f311.6dbfd4",
+        "type": "subflow:f246722e.5e8558",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "env": [],
+        "x": 140,
         "y": 40,
         "wires": [
             [
-                "4a37808bb33bfb58",
-                "c70d15aa49d09ebf"
+                "24db202d.bce3",
+                "d78da7ba.3626",
+                "a7bbf92b.253ee8"
+            ],
+            [
+                "24db202d.bce3",
+                "22b513b3.023ca4"
             ]
         ]
     },
     {
-        "id": "4a37808bb33bfb58",
-        "type": "http response",
+        "id": "d78da7ba.3626",
+        "type": "switch",
         "z": "2b4a876790c8a9a3",
+        "d": true,
         "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 300,
+        "property": "payload[\"charger\"]",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "SN10052107050686",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 350,
+        "y": 80,
+        "wires": [
+            [
+                "6692bff2.e2f708"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "6692bff2.e2f708",
+        "type": "debug",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "Filtered",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "89108602.a4338",
+        "type": "http request",
+        "z": "2b4a876790c8a9a3",
+        "name": "charger",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://api.chargedock.in/ocpp/charger",
+        "tls": "daa14bb1.34271",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 520,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "22b513b3.023ca4",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "",
+        "func": "msg.headers = {};\nmsg.headers[\"X-API-KEY\"] = \"6ovuIrVd1vVGdVnE5TtwTxPhlzZf+Dmkf6mIQw6IBMk=\";\n\nmsg.payload[\"iat\"] = msg.payload[\"iat\"].replace(/05:30/gi, \"11:00\");\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 160,
+        "wires": [
+            [
+                "89108602.a4338",
+                "3726b149.83af6e",
+                "56852e67332c51af",
+                "578c7303f482122f",
+                "a272caa1f63a0a39",
+                "835cd8af1ee9d7d7"
+            ]
+        ]
+    },
+    {
+        "id": "3726b149.83af6e",
+        "type": "debug",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "Relay",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
         "y": 80,
         "wires": []
     },
     {
-        "id": "c70d15aa49d09ebf",
+        "id": "a7bbf92b.253ee8",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "func": "msg.headers = {};\nmsg.headers[\"X-API-KEY\"] = \"6ovuIrVd1vVGdVnE5TtwTxPhlzZf+Dmkf6mIQw6IBMk=\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 120,
+        "wires": [
+            [
+                "8f9f3080.c39c78",
+                "3726b149.83af6e",
+                "b0b169e46226e2f1",
+                "3659b7c8027b0c62",
+                "a272caa1f63a0a39",
+                "835cd8af1ee9d7d7"
+            ]
+        ]
+    },
+    {
+        "id": "8f9f3080.c39c78",
+        "type": "http request",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "transaction",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://dev-api.chargedock.in/ocpp/transaction",
+        "tls": "daa14bb1.34271",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 530,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b0b169e46226e2f1",
+        "type": "http request",
+        "z": "2b4a876790c8a9a3",
+        "name": "transaction",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://api.chargedock.in/ocpp/transaction",
+        "tls": "daa14bb1.34271",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 530,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "56852e67332c51af",
+        "type": "http request",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "charger",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://dev-api.chargedock.in/ocpp/charger",
+        "tls": "daa14bb1.34271",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 520,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3659b7c8027b0c62",
+        "type": "file",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "",
+        "filename": "/irasus0/charger",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 340,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "578c7303f482122f",
+        "type": "file",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "",
+        "filename": "/irasus0/transaction",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 330,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "21ab59bc8bda8698",
+        "type": "http in",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "url": "/v1.0.1/transaction/start",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 360,
+        "wires": [
+            [
+                "f1223bb73e03056d"
+            ]
+        ]
+    },
+    {
+        "id": "a7fdde943df6113e",
+        "type": "http response",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 830,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "d4cdc7d804b81433",
         "type": "debug",
         "z": "2b4a876790c8a9a3",
         "name": "",
@@ -45,29 +390,476 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 310,
+        "x": 1150,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "1c6dcc1e240202dd",
+        "type": "http request",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 530,
+        "y": 360,
+        "wires": [
+            [
+                "0f2a0500cef358c1"
+            ]
+        ]
+    },
+    {
+        "id": "1109ffd254978fde",
+        "type": "http in",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "url": "/v1.0.1/transaction/stop",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 400,
+        "wires": [
+            [
+                "812977a9aed09a59"
+            ]
+        ]
+    },
+    {
+        "id": "a272caa1f63a0a39",
+        "type": "switch",
+        "z": "2b4a876790c8a9a3",
+        "d": true,
+        "name": "",
+        "property": "payload.charger",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "simulator",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 710,
+        "y": 180,
+        "wires": [
+            [
+                "835cd8af1ee9d7d7"
+            ]
+        ]
+    },
+    {
+        "id": "f1223bb73e03056d",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "create URL",
+        "func": "msg.url = \"http://steve:8180/v1.0.1/transaction/start?charger=\" + msg.payload.charger.toString() + \"&connector=\" + msg.payload.connector.toString() + \"&tag=\" + msg.payload.tag.toString();                       \n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 360,
+        "wires": [
+            [
+                "1c6dcc1e240202dd"
+            ]
+        ]
+    },
+    {
+        "id": "0f2a0500cef358c1",
+        "type": "switch",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "property": "statusCode",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "num"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 670,
+        "y": 360,
+        "wires": [
+            [
+                "69f7702b4aef6fb2"
+            ],
+            [
+                "a7fdde943df6113e",
+                "d4cdc7d804b81433"
+            ]
+        ]
+    },
+    {
+        "id": "75b45715d126d2cb",
+        "type": "http response",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1200,
         "y": 40,
         "wires": []
     },
     {
-        "id": "6e73ce04a3f868d5",
-        "type": "http in",
+        "id": "37075e800529ee2a",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "set msg.res ",
+        "func": "flow.set([msg.payload.charger], msg.res);\n\nmsg.payload_ = msg.payload;\nmsg.payload = \"Transaction failed. Charging did not start! Try Again\";\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 150,
+        "y": 460,
+        "wires": [
+            [
+                "42567ad008350b09"
+            ]
+        ]
+    },
+    {
+        "id": "69f7702b4aef6fb2",
+        "type": "json",
         "z": "2b4a876790c8a9a3",
         "name": "",
-        "url": "/transaction",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 100,
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 830,
+        "y": 360,
+        "wires": [
+            [
+                "d4cdc7d804b81433",
+                "54b976be9442fcc1"
+            ]
+        ]
+    },
+    {
+        "id": "19222432fb0de30a",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "Flow variable assign",
+        "func": "\nmsg.res = flow.get(msg.payload.charger);\n\nmsg.payload.response = \"Accepted\";\n\nvar trigger_name = msg.payload.charger.toString() + \"_Tr\";\n\nflow.set(trigger_name, 1);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
         "y": 80,
         "wires": [
             [
-                "4a37808bb33bfb58",
-                "c70d15aa49d09ebf"
+                "75b45715d126d2cb",
+                "f5f2f20435fe257c"
             ]
         ]
+    },
+    {
+        "id": "f5f2f20435fe257c",
+        "type": "json",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 1190,
+        "y": 80,
+        "wires": [
+            [
+                "24cb9d31ed182fa8"
+            ]
+        ]
+    },
+    {
+        "id": "b12bf56c994d894c",
+        "type": "http request",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 530,
+        "y": 400,
+        "wires": [
+            [
+                "6484552c68a1fc9f"
+            ]
+        ]
+    },
+    {
+        "id": "812977a9aed09a59",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "create URL",
+        "func": "msg.url = \"http://steve:8180/v1.0.1/transaction/stop?transaction=\" + msg.payload.transaction.toString();\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 400,
+        "wires": [
+            [
+                "b12bf56c994d894c"
+            ]
+        ]
+    },
+    {
+        "id": "6484552c68a1fc9f",
+        "type": "switch",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "property": "statusCode",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "num"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 670,
+        "y": 400,
+        "wires": [
+            [
+                "69f7702b4aef6fb2"
+            ],
+            [
+                "a7fdde943df6113e",
+                "d4cdc7d804b81433"
+            ]
+        ]
+    },
+    {
+        "id": "835cd8af1ee9d7d7",
+        "type": "delay",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 820,
+        "y": 80,
+        "wires": [
+            [
+                "19222432fb0de30a"
+            ]
+        ]
+    },
+    {
+        "id": "42567ad008350b09",
+        "type": "delay",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "20",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 300,
+        "y": 460,
+        "wires": [
+            [
+                "2e784853ee1860f0"
+            ]
+        ]
+    },
+    {
+        "id": "51483272944aea82",
+        "type": "switch",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "property": "trigger",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 630,
+        "y": 460,
+        "wires": [
+            [
+                "120839d04db9ded0",
+                "0f8e88bfff6f066f"
+            ],
+            [
+                "a7fdde943df6113e",
+                "120839d04db9ded0"
+            ]
+        ]
+    },
+    {
+        "id": "120839d04db9ded0",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "refresh trigger",
+        "func": "var trigger_name = msg.payload_.charger.toString() + \"_Tr\";\n\nflow.set(trigger_name);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2e784853ee1860f0",
+        "type": "function",
+        "z": "2b4a876790c8a9a3",
+        "name": "flow variable get",
+        "func": "var trigger_name = msg.payload_.charger.toString() + \"_Tr\";\n\nmsg.trigger = flow.get(trigger_name);\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 460,
+        "wires": [
+            [
+                "51483272944aea82"
+            ]
+        ]
+    },
+    {
+        "id": "6804706d03cc2e60",
+        "type": "link in",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "links": [
+            "54b976be9442fcc1"
+        ],
+        "x": 55,
+        "y": 460,
+        "wires": [
+            [
+                "37075e800529ee2a"
+            ]
+        ]
+    },
+    {
+        "id": "54b976be9442fcc1",
+        "type": "link out",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "mode": "link",
+        "links": [
+            "6804706d03cc2e60"
+        ],
+        "x": 935,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "45ea9c582f0e2a66",
+        "type": "comment",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "info": "http://localhost:1880//v1.0.1/transaction/start?charger=simulator&connector=0&tag=root\n\nhttp://localhost:1880//v1.0.1/transaction/stop?transaction=95\n",
+        "x": 380,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "24cb9d31ed182fa8",
+        "type": "debug",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1270,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "0f8e88bfff6f066f",
+        "type": "debug",
+        "z": "2b4a876790c8a9a3",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 850,
+        "y": 540,
+        "wires": []
     }
 ]
